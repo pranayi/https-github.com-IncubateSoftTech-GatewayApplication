@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.incubatesoft.nats.NatsPublisher;
+
 public class DeviceConnectivity implements Runnable{
 	private ServerSocketChannel serverChannel;
 	private Selector selector;
@@ -32,7 +34,8 @@ public class DeviceConnectivity implements Runnable{
 	private ByteBuffer readBuffer = ByteBuffer.allocate(16384); //16*1024 = 16384 [16KB]
 	private Map<Channel, String> DeviceState = new HashMap<Channel, String>(); 
 	private Map<String,Long> DeviceLastTimeStamp = new HashMap<String, Long>();
-
+	private NatsPublisher natsPublisher = new NatsPublisher();
+	
 	public DeviceConnectivity() {
 		init();
 	}
@@ -252,7 +255,15 @@ public class DeviceConnectivity implements Runnable{
 				//String sData = org.bson.internal.Base64.encode(data);
 
 				// printing the data after it has been received - Sarat
-				System.out.println(byteToStringBuilder(data));
+				StringBuilder deviceData = byteToStringBuilder(data);
+				System.out.println(" Data received from device : "+deviceData);
+				
+				try {
+					//publish device IMEI and packet data to Nats Server
+					natsPublisher.publishMessage(sDeviceID, deviceData);
+				} catch(Exception nexp) {
+					nexp.printStackTrace();
+				}
 
 				//sending response to device after processing the AVL data. - Sarat
 				try {
