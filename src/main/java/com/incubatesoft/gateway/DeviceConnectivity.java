@@ -120,9 +120,9 @@ public class DeviceConnectivity implements Runnable{
 		SocketChannel channel = (SocketChannel)key.channel();
 		readBuffer.clear();
 		int length = channel.read(readBuffer);
-		readBuffer.flip();
-		byte[] data = new byte[length];
-		readBuffer.get(data, 0, length);
+		byte[] data = null;
+
+		// Checking whether length is negative, to overcome java.lang.NegativeArraySizeException -- Aditya
 		if (length == -1) {
 			mClientStatus.remove(channel);
 			clients--;
@@ -130,8 +130,11 @@ public class DeviceConnectivity implements Runnable{
 			key.cancel();
 			throw new IOException("No data found");
 		}else {
-			return data;
+			readBuffer.flip();
+			data = new byte[length];
+			readBuffer.get(data, 0, length);						
 		}
+		return data;
 	}
 
 	/**

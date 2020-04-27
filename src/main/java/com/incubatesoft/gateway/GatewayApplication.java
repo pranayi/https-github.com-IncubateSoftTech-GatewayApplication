@@ -7,7 +7,7 @@ public class GatewayApplication
     {
         System.out.println( "Gateway Application !" );        
         
-        Thread serv = new Thread(new DeviceConnectivity());
-        serv.start();                        
+        Thread gateWayThread = new Thread(new DeviceConnectivity());
+        gateWayThread.start();                        
     }
 }
